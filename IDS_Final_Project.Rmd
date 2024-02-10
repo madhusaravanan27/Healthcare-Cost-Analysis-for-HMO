@@ -1,0 +1,335 @@
+---
+Overview: 
+```{r}
+
+```
+
+The dataset contains healthcare cost information from an HMO (Health Management
+Organization). Each row in the dataset represents a person. Health Management 
+Organizations (HMOs) are medical insurance groups that offer health care in 
+exchange for a set annual charge. The dataset that we were given has 14 columns
+and contains data on 7,583 people. The columns broadly focus on several categories,
+including the individual's unique identifier, age, geographic location, gender, 
+education level, marital status, number of children, and healthcare expenditure. 
+They also ask about the individual's exercise, smoking, BMI, annual physical 
+examination status, and hypertension status. Based on the facts at hand, we deliver
+actionable information through our research, and we also successfully anticipate 
+which consumers will spend a lot of money on healthcare. 
+
+---
+Project Goal: 
+
+• Predict people who will spend a lot of money on health care next year (i.e., 
+which people will have high healthcare costs). 
+• Provide actionable insight to the HMO, in terms of how to lower their total 
+health care costs, by providing a specific recommendation on how to lower health 
+care costs.
+---
+Part 1: Data Acquisition (Loading the data)
+```{r}
+#loading the readr package to import the data file
+library(readr)
+
+datafile <- "https://intro-datascience.s3.us-east-2.amazonaws.com/HMO_data.csv"
+
+#using the read_csv function to read the CSV file into a data frame called hmo_data
+hmo_data <- read_csv(datafile)
+
+#checking the number of rows and columns in the dataset
+dim(hmo_data)
+#the dataset has 7582 rows and 14 columns
+```
+
+Part 2: Data Exploration (Finding out the data attributes)
+```{r}
+#structure of the data frame
+str(hmo_data)
+
+#first six rows of the dataframe
+head(hmo_data) 
+
+#last six rows of the dataframe
+tail(hmo_data) 
+
+#summary statistics of the dataset and cost column
+summary(hmo_data) 
+summary(hmo_data$cost)
+
+#checking for NA's/missing values in the dataset
+any(is.na(hmo_data)) 
+
+#checking for duplicated rows
+hmo_data_d  <- duplicated(hmo_data) 
+#hmo_data[hmo_data_d,] #0
+
+#calculating the total cost of the dataset
+sum(hmo_data$cost)
+```
+
+```{r}
+#checking the total number and percentage of missing values in each column
+total <- colSums(is.na(hmo_data))
+percent <- total / nrow(hmo_data) * 100
+result <- data.frame(Total = total, Percent = percent)
+result
+
+#The 'bmi' and 'hypertension' columns contain missing values.
+#bmi has 78 null values
+#hypertension has 80 null values
+```
+
+```{r}
+#Inital Analysis:
+
+#1. The dataset contains 7,582 rows and 14 columns, where the 'X' column represents
+    #the unique identifier.
+
+#2. The 'smoker', 'yearly_physical', 'exercise', 'married', and 'gender' columns 
+    #have binary values.
+
+#3. The 'bmi' and 'hypertension' columns contain missing values.
+
+#4. The 'location' and 'location_type' columns indicate the location and type of
+    #location, respectively.
+
+#5. The 'education_level' column indicates the highest education level of the 
+    #individual.
+
+#6. The 'cost' column represents the medical cost of the individual.
+
+```
+
+Part 3: Data Cleaning (Using na_interpolation)
+```{r}
+#loading the imputeTS function to
+library(imputeTS)
+
+#imputing missing values in 'bmi' column
+hmo_data$bmi <- na_interpolation(hmo_data$bmi)
+
+#removing rows with missing values in 'hypertension' column
+hmo_data <- hmo_data[!is.na(hmo_data$hypertension),]
+
+#Checking for null values after cleaning
+sum(is.na(hmo_data$bmi)) #0
+sum(is.na(hmo_data$hypertension)) #0
+sum(is.na(hmo_data)) #0 
+
+#the cleaned dataset has 7502 rows and 14 columns 
+```
+
+Part 4: Dividing Dataset Into Expensive and Not Expensive People
+```{r}
+#Since the Mean of Cost Column is $4043, we define people who are paying more than $4200 as expensive
+hmo_data$expensive <- ""
+for (i in 1:7502){
+  if(hmo_data[i,"cost"] > 4200)
+    hmo_data[i,"expensive"] <- "yes" 
+  else
+    hmo_data[i,"expensive"] <- "no"
+}
+hmo_data$expensive <- as.factor(hmo_data$expensive)
+
+#Expensive attribute yes means the customer is expensive and no means it's not expensive.
+```
+
+Part 5: Data Visualization
+```{r}
+#Age vs Cost Bar Plot
+library(ggplot2)
+ggplot(hmo_data, aes(x=age, y=cost)) +
+  geom_bar(stat="identity")
+```
+
+
+```{r}
+#BMI vs Cost Scatter Plot
+library(ggplot2)
+
+ggplot(data = hmo_data, aes(x = bmi, y = cost)) +
+  geom_point(alpha = 0.5, size = 3) +
+  labs(x = "BMI", y = "Cost", title = "BMI vs. Cost") +
+  theme_classic()
+```
+
+
+```{r}
+#Exercise Level vs Expensive Status
+library(ggplot2)
+ggplot(hmo_data, aes(x=exercise, fill=expensive)) +
+  geom_bar(position="dodge") +
+  xlab("Exercise Category") +
+  ylab("Count") +
+  ggtitle("# of Expensive and Not Expensive People According to Exercise Level")
+```
+
+
+```{r}
+#Smoking Status vs Expensive Status
+library(ggplot2)
+ggplot(hmo_data, aes(x=smoker, fill=expensive)) +
+  geom_bar(position="dodge") +
+  xlab("Smoker Category") +
+  ylab("Count") +
+  ggtitle("# of Expensive and Not Expensive People According to Smoker Status")
+```
+
+
+```{r}
+#Histogram of BMI
+library(ggplot2)
+ggplot(hmo_data, aes(x=bmi)) + 
+  geom_histogram(binwidth=1, color="black", fill="blue") + 
+  labs(title="BMI Distribution", x="BMI", y="Frequency")
+```
+
+
+```{r}
+#Cost distribution
+hist(hmo_data$cost, breaks = 30, col = "green", main = "Cost Distribution", xlab = "Cost", ylab = "Frequency")
+```
+
+
+```{r}
+#Hypertension vs Expensive Status
+library(ggplot2)
+ggplot(hmo_data, aes(x=hypertension, fill=expensive)) +
+  geom_bar(position="dodge") +
+  xlab("Hypertension") +
+  ylab("Count") +
+  ggtitle("# of Expensive and Not Expensive People According to Hypertension")
+```
+
+
+```{r}
+#Boxplot of Smoker
+ggplot(hmo_data, aes(x = smoker, y = cost)) + geom_boxplot()
+```
+
+
+```{r}
+#Boxplot of BMI
+ggplot(hmo_data, aes(x = bmi)) + geom_boxplot()
+```
+
+```{r}
+#Scatterplot of BMI and Cost with Smoker Status
+ggplot(hmo_data)+geom_point(aes(x=bmi ,y=cost, color = smoker))+
+ylab('cost')+xlab('bmi')+ggtitle("Cost vs BMI according to Smoker Status") 
+```
+
+
+```{r}
+#Scatterplot of BMI and Cost with Yearly Physical Checkup
+ggplot(hmo_data)+geom_point(aes(x=bmi ,y=cost ,color=yearly_physical))+
+ylab('cost')+xlab('bmi')+ggtitle("Cost vs BMI according to Yearly Physical")
+```
+
+
+```{r}
+#Scatterplot of BMI and Cost with Exercise Status
+ggplot(hmo_data)+geom_point(aes(x=bmi ,y=cost ,color=exercise))+
+ylab('cost')+xlab('bmi')+ggtitle("Cost vs BMI according to Exercise Status")
+
+```
+
+
+```{r}
+#Scatterplot of BMI and Cost with Hypertension Status
+ggplot(hmo_data)+geom_point(aes(x=bmi ,y=cost ,color=hypertension))+
+ylab('cost')+xlab('bmi')+ggtitle("Cost vs BMI according to Hypertension Status")
+```
+
+
+```{r}
+#Gender vs Expensive Status
+library(ggplot2)
+ggplot(hmo_data, aes(x=gender, fill=expensive)) +
+  geom_bar(position="dodge") +
+  xlab("Gender") +
+  ylab("Count") +
+  ggtitle("# of Expensive and Not Expensive People According to Gender")
+```
+
+
+```{r}
+#Creating a duplicate dataset from the original dataset to use for model training
+hmodata1 <- data.frame(hmo_data)
+```
+
+
+```{r}
+#Predictive model svm
+
+hmodata1$cost_status<-with(hmodata1,ifelse(cost>4200,"TRUE","FALSE"))
+hmodata1$cost_status<-as.factor(hmodata1$cost_status)
+
+library(caret) 
+set.seed(123)
+hmodata_model <-data.frame(hmodata1)
+#Creating duplicate dataset to utilize for prediction models
+trainList <- createDataPartition(y=hmodata_model$cost_status,p=.60,list=FALSE) #Creating data partition of our data frame to create a trainset for model training and a testset for testing predictions
+trainSet <- hmodata_model[trainList,] 
+testSet <- hmodata_model[-trainList,]
+hmodata_svm1 <- train(cost_status ~ X+age+bmi+children+smoker+location+location_type+education_level+yearly_physical +exercise+married+hypertension+gender, data = trainSet ,method = "svmRadial",trControl=trainControl(method ="none"), preProcess = c("center", "scale"))
+predict_svm <- predict(hmodata_svm1, newdata=testSet)
+
+confusionMatrix(predict_svm, testSet$cost_status)
+#SVM Model accuracy =85.85% 
+#SVM Model sensitivity =96.05%
+```
+
+
+```{r}
+#install.packages("rio") 
+library(rio) 
+library(kernlab) 
+library(rlang) 
+library(caret) 
+set.seed(123)
+hmodata_ksvm1<-ksvm(data=trainSet,cost_status~X+age+bmi+children+smoker+location+location_type+education_level+yearly_physical+exercise+married+hypertension+gender,C=5, cross=3, prob.model=TRUE)
+predict_ksvm <- predict(hmodata_ksvm1, newdata=testSet)
+confusionMatrix(predict_ksvm, testSet$cost_status)
+#KSVM Model Sensitivity 96.58% 
+#KSVM Model Accuracy 87.4%
+```
+
+```{r}
+#Prediction Model training rpart tree
+
+#install.packages('e1071', dependencies = TRUE) 
+#install.packages("rpart.plot")
+library(rpart) 
+library(rpart.plot)
+
+hmodata_tree<-data.frame(hmodata1)
+
+Treeplot<-rpart(cost_status ~ X+age+bmi+children+smoker+location+location_type+education_level+yearly_physical +exercise+married+hypertension+gender, data = trainSet, control = c(maxdepth = 5, cp=0.002))
+prp(Treeplot, faclen = 0, cex = 0.8, extra = 1)
+predict_tree <- predict(Treeplot, newdata=testSet, type = "class")
+
+confusionMatrix(predict_tree,testSet$cost_status)
+#Tree Model Sensitivity 88.23% 
+#Tree Model Accuracy 97.81%
+```
+
+Map
+```{r}
+library(ggplot2); 
+library(maps); 
+library(ggmap); 
+library(mapproj);
+library(tidyverse)
+hmodatasortedDF <- hmo_data %>% group_by(location) %>% summarise(avgCost = 
+mean(hmo_data$cost))
+us<- map_data("state")
+us$state_name <- tolower(us$region)
+hmodatasortedDF$location <- tolower(hmodatasortedDF$location)
+mergeddata <- 
+merge(us,hmodatasortedDF,all.x=TRUE,by.y="location",by.x="state_name")
+ggplot(mergeddata, aes(map_id= state_name)) + aes(x=long, y=lat, group=group) + 
+geom_polygon(aes(fill = avgCost), color = "black") + 
+  scale_colour_gradient(low="blue", high="red")+
+expand_limits(x=mergeddata$long, y=mergeddata$lat)
+```
+
