@@ -6,11 +6,11 @@ This project focuses on analyzing healthcare cost information from a Health Mana
 
 **Technologies Used**:
 
-R Studio: For data analysis, visualization, and modeling.
+- R Studio: For data analysis, visualization, and modeling.
 
-CSV: Dataset format used for data acquisition.
+- CSV: Dataset format used for data acquisition.
 
-Pandas & R Libraries: For data cleaning, transformation, and statistical analysis.
+- R Libraries: For data cleaning, transformation, and statistical analysis.
 
 **Features**:
 
@@ -28,55 +28,60 @@ Created bar plots, histograms, box plots, and scatterplots to visualize relation
 
 **Data Analysis Process**:
 
-Data Acquisition: 
+- Data Acquisition: 
 
 Loaded the dataset of healthcare cost information from an HMO.
 
-Data Cleansing: 
+- Data Cleansing: 
 
 Handled missing values and corrected incorrect values using interpolation techniques.
 
-Data Transformation: 
+- Data Transformation: 
 
 Created new columns for cost status and other key variables to aid in analysis.
 
-Modeling Techniques:
+- Modeling Techniques:
 
-SVM Model:
+1. SVM Model:
 
 Used to classify individuals based on predicted healthcare costs.
 
-KSVM Model: 
+2. KSVM Model: 
 
 An advanced version of SVM used for better accuracy.
 
-Rpart Model: 
+3. Rpart Model: 
 
 Implemented for decision tree-based classification.
 
 **Descriptive Statistics & Visualizations**
 
-Age vs. Cost: 
+- Age vs. Cost: 
 
 Showed trends where healthcare costs rise with age after a decline in young adulthood.
 
-BMI Distribution:
+- BMI Distribution:
 
 Observed a normal distribution with most values clustered around the average BMI.
 
-Cost Distribution: 
+- Cost Distribution: 
 
 Healthcare costs showed a right-skewed distribution with a small proportion of very high costs.
 
-Scatterplots:
+- Scatterplots:
 
 Revealed correlations between healthcare costs and behaviors such as smoking and physical activity.
 
 **Actionable Insights**:
 
-Encourage Healthy Habits: 
+- Encourage Healthy Habits:
+
 Promote regular exercise to reduce healthcare costs.
-Smoking Cessation: 
+
+- Smoking Cessation: 
+
 Implement programs to help individuals quit smoking, as smokers tend to have higher medical costs.
-Monitor High-Risk Individuals:
+
+- Monitor High-Risk Individuals:
+
 Identify and manage individuals with chronic conditions (e.g., hypertension) to prevent costly complications.
